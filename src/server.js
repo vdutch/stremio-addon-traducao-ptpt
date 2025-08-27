@@ -3,6 +3,7 @@ import { addonBuilder } from 'stremio-addon-sdk';
 import { translate } from './translator.js';
 import { sampleCatalog, findMetaById } from './sampleCatalog.js';
 import { aggregatedTrending, aggregatedSearch } from './aggregator.js';
+import { fetchRemoteCatalogMerged, translateMetas, fetchRemoteMeta } from './remoteAggregator.js';
 import { addToWatchlist, removeFromWatchlist, getWatchlist } from './watchlist.js';
 import { CONFIG } from './config.js';
 import { applyGlossary } from './glossary.js';
@@ -22,7 +23,9 @@ const manifest = {
     { type: 'movie', id: 'trad-movies', name: 'Filmes (Traduzido)' },
     { type: 'series', id: 'trad-series', name: 'Séries (Traduzido)' },
     { type: 'movie', id: 'trad-trending', name: 'Filmes Trending (Agregado)' },
-    { type: 'series', id: 'trad-trending-series', name: 'Séries Trending (Agregado)' }
+    { type: 'series', id: 'trad-trending-series', name: 'Séries Trending (Agregado)' },
+    { type: 'movie', id: 'trad-all', name: 'Filmes (Tudo Traduzido)' },
+    { type: 'series', id: 'trad-all-series', name: 'Séries (Tudo Traduzido)' }
   ],
   resources: ['catalog', 'meta'],
   idPrefixes: ['tt'],
@@ -40,6 +43,15 @@ builder.defineCatalogHandler(async ({ type, id, extra }) => {
     items = sampleCatalog.filter(i => i.type === type);
   } else if (id.startsWith('trad-trending')) {
     items = await aggregatedTrending(type);
+  } else if (id === 'trad-all' || id === 'trad-all-series') {
+    // Super agregador remoto
+    const remote = await fetchRemoteCatalogMerged({ type, search: extra?.search, genre: extra?.genre });
+    // Traduz diretamente metas remotas (já inclui fallback)
+    const translated = await translateMetas(remote.slice(0, 120), TARGET_LANG);
+    return { metas: translated.map(m => ({
+      ...m,
+      posterShape: m.posterShape || 'regular'
+    })) };
   }
   // Busca
   if (extra && extra.search) {
@@ -80,9 +92,13 @@ builder.defineMetaHandler(async ({ type, id }) => {
   // Tenta sample primeiro
   let base = findMetaById(id);
   if (!base) {
-    // fallback: buscar em agregação rápida (trending + search pelo id parte do nome)
     const all = [...await aggregatedTrending('movie'), ...await aggregatedTrending('series')];
     base = all.find(i => i.id === id);
+  }
+  // Super agregador remoto
+  if (!base) {
+    const remote = await fetchRemoteMeta(id, type, TARGET_LANG);
+    if (remote) return { meta: remote };
   }
   if (!base) return { meta: null };
   const name = applyGlossary(await translate(base.name, TARGET_LANG));

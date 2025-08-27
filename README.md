@@ -43,6 +43,8 @@ Servidor: `http://localhost:7000`
 - `PRETRANSLATE=1` usar script pré-tradução manualmente
 - `GLOSSARY_PATH` caminho de glossary.json (default ./glossary.json)
 - `CACHE_TTL` TTL cache (segundos)
+- `REMOTE_ADDONS` lista de manifests remotos separados por vírgula (default Cinemeta)
+- `REMOTE_REFRESH_SEC` intervalo para recarregar manifests remotos
 
 ## Adicionando no Stremio
 Manifesto: `http://<SEU_IP_LOCAL>:7000/manifest.json`
@@ -56,6 +58,18 @@ Smart TV: mesma rede; abrir firewall porta 7000.
 - `GET /user/:userId/watchlist` (listar)
 - `GET /img?url=<encoded>`
 - `GET /health`
+
+## Super Agregador (Tudo Traduzido)
+Catálogos `Filmes (Tudo Traduzido)` e `Séries (Tudo Traduzido)` agregam catálogos de add-ons remotos (por padrão Cinemeta), traduzem e retornam uma lista unificada.
+
+Personalização:
+```
+REMOTE_ADDONS=https://v3-cinemeta.strem.io/manifest.json,https://outro-addon/manifest.json
+REMOTE_REFRESH_SEC=1800
+```
+Limitações:
+- Paginacão simplificada (recorta primeiros ~120 itens).
+- Pode haver delay adicional na primeira chamada (tradução + fetch remoto).
 
 ## Glossário
 Arquivo `glossary.json` exemplo:

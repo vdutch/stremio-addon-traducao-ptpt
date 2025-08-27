@@ -15,5 +15,10 @@ export const CONFIG = {
   TMDB_API_KEY: process.env.TMDB_API_KEY || '',
   OMDB_API_KEY: process.env.OMDB_API_KEY || '',
   PRETRANSLATE: process.env.PRETRANSLATE === '1',
-  CACHE_TTL: parseInt(process.env.CACHE_TTL || '86400', 10)
+  CACHE_TTL: parseInt(process.env.CACHE_TTL || '86400', 10),
+  REMOTE_ADDONS: (process.env.REMOTE_ADDONS || 'https://v3-cinemeta.strem.io/manifest.json')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean),
+  REMOTE_REFRESH_SEC: parseInt(process.env.REMOTE_REFRESH_SEC || '3600', 10)
 };
