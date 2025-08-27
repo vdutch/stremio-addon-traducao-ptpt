@@ -13,8 +13,8 @@ const NAME = 'Catálogo Traduzido PT-BR (Agregado)';
 
 // Manifesto do add-on
 const manifest = {
-  id: 'org.example.catalogo-traduzido-ptbr',
-  version: '0.1.0',
+  id: 'org.stremio.catalogo-traduzido-ptbr',
+  version: '0.2.0',
   name: NAME,
   description: 'Proxy de catálogo que traduz títulos e sinopses para PT-BR em tempo real (com cache).',
   types: ['movie', 'series'],
@@ -25,7 +25,10 @@ const manifest = {
     { type: 'series', id: 'trad-trending-series', name: 'Séries Trending (Agregado)' }
   ],
   resources: ['catalog', 'meta'],
-  idPrefixes: ['tt']
+  idPrefixes: ['tt'],
+  behaviorHints: {
+    configurable: true
+  }
 };
 
 const builder = new addonBuilder(manifest);
@@ -102,6 +105,15 @@ builder.defineMetaHandler(async ({ type, id }) => {
 
 // Express server para entregar o add-on JSON
 const app = express();
+
+// CORS headers para compatibilidade Stremio
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Content-Type', 'application/json; charset=utf-8');
+  next();
+});
 
 // Root -> manifesto
 app.get('/', (req, res) => { res.json(manifest); });
