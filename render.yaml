@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: stremio-traducao-ptbr
+    env: docker
+    plan: free
+    autoDeploy: true
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: TARGET_LANG
+        value: pt
+      - key: PORT
+        value: 7000
+      # Configure suas keys abaixo (não commitar valores reais publicamente)
+      - key: TMDB_API_KEY
+        sync: false
+      - key: OMDB_API_KEY
+        sync: false
+      - key: LIBRE_TRANSLATE_URL
+        sync: false

@@ -1,0 +1,19 @@
+# Arquivos que não devem ser commitados
+node_modules/
+.env
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Cache e dados locais
+data/
+cache/
+*.db
+*.sqlite
+
+# Arquivos temporários
+tmp/
+temp/
+.tmp/

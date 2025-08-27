@@ -1,0 +1,19 @@
+{
+  "Matrix": "Matrix",
+  "Season": "Temporada",
+  "Episode": "Episódio", 
+  "Series": "Série",
+  "Movie": "Filme",
+  "Action": "Ação",
+  "Drama": "Drama",
+  "Comedy": "Comédia",
+  "Thriller": "Suspense",
+  "Horror": "Terror",
+  "Romance": "Romance",
+  "Sci-Fi": "Ficção Científica",
+  "Fantasy": "Fantasia",
+  "Crime": "Crime",
+  "Adventure": "Aventura",
+  "Animation": "Animação",
+  "Documentary": "Documentário"
+}
