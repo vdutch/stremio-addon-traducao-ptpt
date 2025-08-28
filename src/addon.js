@@ -1,8 +1,8 @@
-import { addonBuilder } from 'stremio-addon-sdk';
-import manifest from './manifest.js';
-import { getCache } from './cache.js';
-import { findByImdb, getMovie, getTV, getEpisode, getSeason } from './tmdb.js';
-import { translateWithGemini } from './translate.js';
+const { addonBuilder } = require('stremio-addon-sdk');
+const manifest = require('./manifest.js');
+const { getCache } = require('./cache.js');
+const { findByImdb, getMovie, getTV, getEpisode, getSeason } = require('./tmdb.js');
+const { translateWithGemini } = require('./translate.js');
 
 const builder = new addonBuilder(manifest);
 
@@ -201,4 +201,4 @@ builder.defineMetaHandler(async (args) => {
   }
 });
 
-export default builder.getInterface();
+module.exports = builder.getInterface();

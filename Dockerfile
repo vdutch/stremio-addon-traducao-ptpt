@@ -1,19 +1,20 @@
-FROM node:20-alpine
+# Usar Node 18 LTS específico para evitar problemas ESM/CommonJS
+FROM node:18-alpine
 
 WORKDIR /app
 
 # Instalar dependências
 COPY package*.json ./
-RUN npm install --omit=dev
+RUN npm ci --only=production --no-audit --no-fund
 
 # Copiar código fonte
 COPY src ./src
 
-# Copiar arquivo de ambiente (se existir)
-COPY .env* ./
-
 # Expor porta
 EXPOSE 7000
 
-# Comando de inicialização
+# Definir NODE_ENV para produção
+ENV NODE_ENV=production
+
+# Comando de inicialização com logs
 CMD ["node", "src/server.js"]

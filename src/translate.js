@@ -1,5 +1,5 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { getCache } from './cache.js';
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { getCache } = require('./cache.js');
 
 /**
  * Heurística simples para detectar se texto já está no idioma alvo
@@ -30,7 +30,7 @@ function isLikelyInTargetLang(text, targetLang) {
 /**
  * Traduz texto usando Google Gemini
  */
-export async function translateWithGemini({ text, targetLang, tone = 'natural' }) {
+async function translateWithGemini({ text, targetLang, tone = 'natural' }) {
   const trimmedText = (text || '').trim();
   if (!trimmedText) return trimmedText;
   
@@ -118,3 +118,5 @@ function limitLength(text, maxLength) {
   
   return slice + '...';
 }
+
+module.exports = { translateWithGemini };

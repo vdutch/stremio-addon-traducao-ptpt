@@ -1,4 +1,4 @@
-import 'dotenv/config';
+require('dotenv/config');
 
 const manifest = {
   id: 'org.yourname.synopsis.translator',
@@ -36,4 +36,4 @@ const manifest = {
   encryptionSecret: process.env.JWT_SECRET || undefined
 };
 
-export default manifest;
+module.exports = manifest;

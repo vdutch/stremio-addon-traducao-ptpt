@@ -1,13 +1,15 @@
-import LRU from 'lru-cache';
+const { LRUCache } = require('lru-cache');
 
 let cacheInstance;
 
-export function getCache() {
+function getCache() {
   if (!cacheInstance) {
-    cacheInstance = new LRU({
+    cacheInstance = new LRUCache({
       max: 500,
       ttl: Number(process.env.CACHE_TTL_MS || 86400000) // 24h default
     });
   }
   return cacheInstance;
 }
+
+module.exports = { getCache };
