@@ -10,6 +10,9 @@ class LoggingCache {
     const options = {
       max: 500,
       ttl: Number(process.env.CACHE_TTL_MS || DEFAULT_CACHE_TTL_MS),
+      dispose: (value, key, reason) => {
+        console.log(`[cache] EVICT: ${key} (reason: ${reason})`);
+      },
     };
     this.cache = new LRUCache(options);
     console.log(`[cache] Cache inicializado. TTL: ${options.ttl}ms, Max items: ${options.max}`);
