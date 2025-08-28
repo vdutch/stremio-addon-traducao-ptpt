@@ -6,24 +6,29 @@ const { getCache } = require('./cache.js');
  */
 function isLikelyInTargetLang(text, targetLang) {
   if (!text) return false;
-  
-  const lowerText = text.toLowerCase();
-  
+  const lower = text.toLowerCase();
+
+  // Atalho: presença de caracteres acentuados comuns em pt/es/fr
+  const hasAccents = /[áéíóúàâêôãõçñùûüœ]/i.test(lower);
+
   if (targetLang.startsWith('pt')) {
-    // Palavras comuns em português
-    return /\b(o|a|os|as|de|que|para|uma|um|com|por|não|mas|sua|seu|dos|das|pela|pelo)\b/i.test(lowerText);
+    // Requer pelo menos 3 tokens portugueses distintos para reduzir falso positivo
+    const tokens = [
+      /\bque\b/, /\bpara\b/, /\bcomo\b/, /\bessa?\b/, /\buma\b/, /\bum\b/, /\bnão\b/, /\bmais\b/, /\bentre\b/, /\bseus?\b/
+    ];
+    const matches = tokens.reduce((c, r) => c + (r.test(lower) ? 1 : 0), 0);
+    return (matches >= 3) || (hasAccents && matches >= 2);
   }
-  
   if (targetLang.startsWith('es')) {
-    // Palavras comuns em espanhol
-    return /\b(el|la|los|las|de|que|para|una|un|con|por|no|pero|su|del|por|desde)\b/i.test(lowerText);
+    const tokens = [/\bque\b/, /\bpara\b/, /\bcomo\b/, /\buna?\b/, /\bno\b/, /\bpero\b/, /\bentre\b/, /\bsus?\b/];
+    const matches = tokens.reduce((c, r) => c + (r.test(lower) ? 1 : 0), 0);
+    return (matches >= 3) || (hasAccents && matches >= 2);
   }
-  
   if (targetLang.startsWith('fr')) {
-    // Palavras comuns em francês
-    return /\b(le|la|les|des|une|un|pour|avec|par|ne|mais|son|sa|ses|du|de|depuis)\b/i.test(lowerText);
+    const tokens = [/\ble\b/, /\bla\b/, /\bles\b/, /\bdes\b/, /\bune?\b/, /\bmais\b/, /\bavec\b/, /\bentre\b/];
+    const matches = tokens.reduce((c, r) => c + (r.test(lower) ? 1 : 0), 0);
+    return (matches >= 3) || (hasAccents && matches >= 2);
   }
-  
   return false;
 }
 
@@ -34,8 +39,15 @@ async function translateWithGemini({ text, targetLang, tone = 'natural' }) {
   const trimmedText = (text || '').trim();
   if (!trimmedText) return trimmedText;
   
-  // Se já parece estar no idioma alvo, não traduz
-  if (isLikelyInTargetLang(trimmedText, targetLang)) {
+  // Possibilidade de desativar heurística via env
+  const disableHeuristic = process.env.DISABLE_LANG_HEURISTIC === '1';
+  const looksLikeTarget = !disableHeuristic && isLikelyInTargetLang(trimmedText, targetLang);
+  if (process.env.DEBUG_TRANSLATION === '1') {
+    console.log('[translate] alvo=%s heuristicDisable=%s looksLikeTarget=%s len=%d sample="%s"',
+      targetLang, disableHeuristic, looksLikeTarget, trimmedText.length, trimmedText.slice(0,80).replace(/\n/g,' '));
+  }
+  if (looksLikeTarget) {
+    if (process.env.DEBUG_TRANSLATION === '1') console.log('[translate] pulando tradução (heurística)');
     return trimmedText;
   }
   
@@ -54,7 +66,7 @@ async function translateWithGemini({ text, targetLang, tone = 'natural' }) {
   const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
   
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
+  const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: modelName });
     
     const prompt = `Você é um tradutor profissional de sinopses audiovisuais. 
@@ -65,9 +77,11 @@ Devolva apenas o texto final, sem markdown e sem tags.
 Texto:
 """${trimmedText}"""`;
     
-    const result = await model.generateContent(prompt);
+  if (process.env.DEBUG_TRANSLATION === '1') console.log('[translate] enviando prompt (%d chars)', prompt.length);
+  const result = await model.generateContent(prompt);
     const response = result.response;
     const translatedText = response.text().trim();
+  if (process.env.DEBUG_TRANSLATION === '1') console.log('[translate] resposta recebida (%d chars)', translatedText.length);
     
     // Limpa e limita o texto
     const finalText = sanitizeText(translatedText) || trimmedText;
@@ -79,6 +93,7 @@ Texto:
     return limitedText;
   } catch (error) {
     console.error('Erro na tradução Gemini:', error.message);
+    if (process.env.DEBUG_TRANSLATION === '1' && error.stack) console.error(error.stack);
     return trimmedText; // Fallback para texto original
   }
 }

@@ -40,12 +40,15 @@ builder.defineMetaHandler(async (args) => {
   const cacheKey = `${id}|${lang}`;
   const cached = cache.get(cacheKey);
   if (cached) {
+    if (process.env.DEBUG_TRANSLATION === '1') console.log('[meta] cache HIT', cacheKey);
     return { meta: cached };
   }
+  if (process.env.DEBUG_TRANSLATION === '1') console.log('[meta] cache MISS', cacheKey, 'lang=', lang, 'tone=', tone);
   
   try {
     // 1. Mapear IMDB ID para TMDB ID
-    const mapped = await findByImdb(imdbId);
+  const mapped = await findByImdb(imdbId);
+  if (process.env.DEBUG_TRANSLATION === '1') console.log('[meta] mapped imdb', imdbId, '->', mapped);
     if (!mapped) {
       return { meta: null };
     }
@@ -158,12 +161,9 @@ builder.defineMetaHandler(async (args) => {
       finalOverview = ''; // Sem descrição disponível
     } else if (lang !== 'en-US') {
       // Traduzir se o idioma alvo não for inglês
-      const translated = await translateWithGemini({ 
-        text: originalOverview, 
-        targetLang: lang, 
-        tone 
-      });
-      finalOverview = translated || originalOverview;
+  const translated = await translateWithGemini({ text: originalOverview, targetLang: lang, tone });
+  if (process.env.DEBUG_TRANSLATION === '1') console.log('[meta] tradução concluída tamanhoOrig=', originalOverview.length, 'tamanhoTrad=', (translated||'').length);
+  finalOverview = translated || originalOverview;
     } else {
       // Se idioma alvo é inglês, usar texto original
       finalOverview = originalOverview;
@@ -192,11 +192,13 @@ builder.defineMetaHandler(async (args) => {
     });
     
     // 6. Cache e retorno
-    cache.set(cacheKey, meta);
+  cache.set(cacheKey, meta);
+  if (process.env.DEBUG_TRANSLATION === '1') console.log('[meta] armazenado em cache', cacheKey);
     return { meta };
     
   } catch (error) {
     console.error(`Erro no handler meta para ${id}:`, error.message);
+  if (process.env.DEBUG_TRANSLATION === '1' && error.stack) console.error(error.stack);
     return { meta: null };
   }
 });
