@@ -10,6 +10,9 @@ RUN npm ci --only=production --no-audit --no-fund
 # Copiar código fonte
 COPY src ./src
 
+# Opcional: remover server.js legacy vazio se existir
+RUN if [ -f src/server.js ] && [ ! -s src/server.js ]; then rm src/server.js; fi || true
+
 # Expor porta
 EXPOSE 7000
 
@@ -17,4 +20,4 @@ EXPOSE 7000
 ENV NODE_ENV=production
 
 # Comando de inicialização com logs
-CMD ["node", "src/server.js"]
+CMD ["node", "src/start.js"]

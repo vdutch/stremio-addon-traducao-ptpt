@@ -9,9 +9,9 @@ services:
       - key: PORT
         value: 7000
       - key: TMDB_API_KEY
-        value: d98b8eae4bef4f25ac7335d22b6cf1c4
+        sync: false  # Defina a key segura no painel Render
       - key: GEMINI_API_KEY
-        value: AIzaSyBH_BPFPhI1Lt3QplSkg9zadLVtOsKfAnY
+        sync: false  # Defina a key segura no painel Render
       - key: GEMINI_MODEL
         value: gemini-1.5-flash
       - key: CACHE_TTL_MS
