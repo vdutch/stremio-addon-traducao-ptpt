@@ -80,16 +80,34 @@ Texto:
   if (process.env.DEBUG_TRANSLATION === '1') console.log('[translate] enviando prompt (%d chars)', prompt.length);
   const result = await model.generateContent(prompt);
     const response = result.response;
-    const translatedText = response.text().trim();
-  if (process.env.DEBUG_TRANSLATION === '1') console.log('[translate] resposta recebida (%d chars)', translatedText.length);
-    
+    let translatedText = response.text().trim();
+    if (process.env.DEBUG_TRANSLATION === '1') console.log('[translate] resposta recebida (%d chars) sample="%s"', translatedText.length, translatedText.slice(0,100).replace(/\n/g,' '));
+
+    // Validação simples: se deve reforçar idioma e não parece no idioma alvo, re-tentar
+    if (process.env.ENFORCE_TARGET_LANG === '1' && !looksLikeTargetLanguage(translatedText, targetLang)) {
+      if (process.env.DEBUG_TRANSLATION === '1') console.log('[translate] output não parece %s, re-tentando com prompt reforçado', targetLang);
+      try {
+        const reinforcePrompt = `Traduza fielmente para ${targetLang} (variante ${targetLang}). Respeite nomes próprios. Responda SOMENTE em ${targetLang}. Texto:\n"""${trimmedText}"""`;
+        const retry = await model.generateContent(reinforcePrompt);
+        const retryText = retry.response.text().trim();
+        if (looksLikeTargetLanguage(retryText, targetLang)) {
+          translatedText = retryText;
+          if (process.env.DEBUG_TRANSLATION === '1') console.log('[translate] segunda tentativa OK');
+        } else if (process.env.DEBUG_TRANSLATION === '1') {
+          console.log('[translate] segunda tentativa ainda não detectada como alvo, mantendo primeira');
+        }
+      } catch (retryErr) {
+        if (process.env.DEBUG_TRANSLATION === '1') console.log('[translate] erro na re-tentativa', retryErr.message);
+      }
+    }
+
     // Limpa e limita o texto
     const finalText = sanitizeText(translatedText) || trimmedText;
     const limitedText = limitLength(finalText, 1200);
-    
+
     // Cache o resultado
     cache.set(cacheKey, limitedText);
-    
+
     return limitedText;
   } catch (error) {
     console.error('Erro na tradução Gemini:', error.message);
@@ -135,3 +153,8 @@ function limitLength(text, maxLength) {
 }
 
 module.exports = { translateWithGemini };
+
+// Função auxiliar simples reutilizando heurística de destino
+function looksLikeTargetLanguage(text, targetLang) {
+  return isLikelyInTargetLang(text, targetLang);
+}

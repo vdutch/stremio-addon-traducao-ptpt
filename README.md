@@ -158,6 +158,7 @@ src/
 | `DEBUG_TRANSLATION` | ❌ | 0 | Quando 1, imprime logs detalhados |
 | `DISABLE_LANG_HEURISTIC` | ❌ | 0 | Quando 1, ignora heurística e sempre tenta traduzir |
 | `ALWAYS_SOURCE_EN` | ❌ | 0 | Quando 1, busca overview em inglês e traduz mesmo havendo versão local |
+| `ENFORCE_TARGET_LANG` | ❌ | 0 | Quando 1, re-tenta se Gemini não devolver no idioma alvo |
 
 ## 🚨 Limitações
 
