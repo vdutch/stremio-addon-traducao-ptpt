@@ -137,7 +137,7 @@ Essas configurações são aplicadas automaticamente às traduções.
 
 ```
 src/
-├── server.js      # Inicializador do servidor
+├── start.js       # Entry-point atual (substitui server.js legacy)
 ├── manifest.js    # Definição do manifest do add-on
 ├── addon.js       # Lógica principal e handler meta
 ├── tmdb.js        # Utilitários para API do TMDB
@@ -155,6 +155,9 @@ src/
 | `GEMINI_MODEL` | ❌ | gemini-1.5-flash | Modelo do Gemini |
 | `CACHE_TTL_MS` | ❌ | 86400000 | TTL do cache (24h) |
 | `JWT_SECRET` | ⚠️ | - | Segredo para criptografia (recomendado) |
+| `DEBUG_TRANSLATION` | ❌ | 0 | Quando 1, imprime logs detalhados |
+| `DISABLE_LANG_HEURISTIC` | ❌ | 0 | Quando 1, ignora heurística e sempre tenta traduzir |
+| `ALWAYS_SOURCE_EN` | ❌ | 0 | Quando 1, busca overview em inglês e traduz mesmo havendo versão local |
 
 ## 🚨 Limitações
 
@@ -188,9 +191,10 @@ src/
 - Teste manifest via browser: `/manifest.json`
 
 ### Traduções não acontecem
+- A sinopse já chega do TMDB em PT-BR (não precisa traduzir) — veja se `ALWAYS_SOURCE_EN=1` é realmente desejado
 - Verifique se idioma alvo é diferente de inglês
-- Confirme que texto original não parece já estar no idioma alvo
-- Verifique logs para erros de API
+- Para forçar tradução mesmo com sinopse local: defina `ALWAYS_SOURCE_EN=1` (faz chamada extra em EN)
+- Para depurar: `DEBUG_TRANSLATION=1` e opcional `DISABLE_LANG_HEURISTIC=1`
 
 ## 📈 Próximos Passos
 

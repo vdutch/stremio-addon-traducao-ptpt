@@ -157,16 +157,39 @@ builder.defineMetaHandler(async (args) => {
     }
     
     // 4. Traduzir se necessário
-    if (!originalOverview) {
+    // Se variável para sempre usar fonte EN estiver ativa, buscar overview em inglês para traduzir
+    let sourceForTranslation = originalOverview;
+    if (process.env.ALWAYS_SOURCE_EN === '1' && lang !== 'en-US') {
+      try {
+        if (baseMovie) {
+          const enMovie = await getMovie(baseMovie.id, 'en-US');
+          if (enMovie.overview) sourceForTranslation = enMovie.overview;
+        } else if (baseEpisode) {
+          const enEpisode = await getEpisode(baseShow.id, season, episode, 'en-US');
+          if (enEpisode.overview) sourceForTranslation = enEpisode.overview;
+        } else if (baseSeason) {
+          const enSeason = await getSeason(baseShow.id, season, 'en-US');
+          if (enSeason.overview) sourceForTranslation = enSeason.overview;
+        } else if (baseShow) {
+          const enShow = await getTV(baseShow.id, 'en-US');
+            if (enShow.overview) sourceForTranslation = enShow.overview;
+        }
+        if (process.env.DEBUG_TRANSLATION === '1') console.log('[meta] ALWAYS_SOURCE_EN ativo; usando texto EN com len=', sourceForTranslation.length);
+      } catch (e) {
+        if (process.env.DEBUG_TRANSLATION === '1') console.log('[meta] Falha ao obter EN source', e.message);
+      }
+    }
+
+    if (!sourceForTranslation) {
       finalOverview = ''; // Sem descrição disponível
     } else if (lang !== 'en-US') {
       // Traduzir se o idioma alvo não for inglês
-  const translated = await translateWithGemini({ text: originalOverview, targetLang: lang, tone });
-  if (process.env.DEBUG_TRANSLATION === '1') console.log('[meta] tradução concluída tamanhoOrig=', originalOverview.length, 'tamanhoTrad=', (translated||'').length);
-  finalOverview = translated || originalOverview;
+      const translated = await translateWithGemini({ text: sourceForTranslation, targetLang: lang, tone });
+      if (process.env.DEBUG_TRANSLATION === '1') console.log('[meta] tradução concluída tamanhoOrig=', sourceForTranslation.length, 'tamanhoTrad=', (translated||'').length);
+      finalOverview = translated || sourceForTranslation;
     } else {
       // Se idioma alvo é inglês, usar texto original
-      finalOverview = originalOverview;
+      finalOverview = sourceForTranslation;
     }
     
     // 5. Montar objeto meta
