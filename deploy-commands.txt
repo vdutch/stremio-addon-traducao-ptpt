@@ -1,8 +1,0 @@
-# Comandos para conectar ao GitHub (substitua SEU_USUARIO pelo seu username)
-
-# Adicionar remote
-git remote add origin https://github.com/SEU_USUARIO/stremio-addon-traducao-ptbr.git
-
-# Fazer push
-git branch -M main
-git push -u origin main

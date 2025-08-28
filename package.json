@@ -1,26 +1,20 @@
 {
-  "name": "stremio-addon-traducao-ptbr",
-  "version": "0.2.0",
-  "description": "Add-on Stremio que atua como proxy de catálogo traduzindo títulos e sinopses para PT-BR.",
+  "name": "stremio-synopsis-translator-gemini",
+  "version": "1.0.0",
+  "description": "Stremio Add-on que traduz automaticamente sinopses usando TMDB + Google Gemini",
   "type": "module",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "NODE_ENV=development node src/server.js",
-    "pretranslate": "node src/pretranslate.js"
+    "dev": "node src/server.js"
   },
-  "engines": {
-    "node": ">=18"
-  },
+  "keywords": ["stremio", "addon", "translation", "gemini", "tmdb", "synopsis", "pt-br"],
+  "license": "MIT",
   "dependencies": {
-    "axios": "^1.7.7",
+    "@google/generative-ai": "^0.21.0",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "node-cache": "^5.1.2",
-    "stremio-addon-sdk": "^1.5.3"
-  },
-  "optionalDependencies": {
-    "better-sqlite3": "^9.6.0",
-    "sharp": "^0.33.3"
+    "lru-cache": "^10.2.2",
+    "node-fetch": "^3.3.2",
+    "stremio-addon-sdk": "^1.6.9"
   }
 }

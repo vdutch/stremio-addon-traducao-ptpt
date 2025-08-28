@@ -1,20 +1,20 @@
 services:
   - type: web
-    name: stremio-traducao-ptbr
+    name: stremio-synopsis-translator-gemini
     env: docker
     plan: free
     autoDeploy: true
-    branch: main
-    healthCheckPath: /health
+    dockerfilePath: ./Dockerfile
     envVars:
-      - key: TARGET_LANG
-        value: pt
       - key: PORT
         value: 7000
-      # Configure suas keys abaixo (não commitar valores reais publicamente)
       - key: TMDB_API_KEY
         sync: false
-      - key: OMDB_API_KEY
+      - key: GEMINI_API_KEY
         sync: false
-      - key: LIBRE_TRANSLATE_URL
-        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-1.5-flash
+      - key: CACHE_TTL_MS
+        value: 86400000
+      - key: JWT_SECRET
+        generateValue: true

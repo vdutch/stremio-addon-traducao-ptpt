@@ -1,126 +1,218 @@
-# Add-on Stremio: Catálogo Traduzido PT-BR (Agregado)
+# Stremio Synopsis Translator (Gemini)
 
-Add-on proxy avançado que agrega múltiplas fontes (local + TMDb + OMDb), traduz e enriquece metadados (título, sinopse, rating, badges) e oferece busca com filtros.
+Add-on para Stremio que traduz automaticamente sinopses de filmes, séries, temporadas e episódios usando **TMDB** + **Google Gemini**.
 
-## Funcionalidades
-- Agregação: catálogo local + TMDb (trending / busca) + OMDb (busca) (conforme API keys).
-- Tradução em tempo real (com glossário custom) + pré-tradução opcional.
-- Cache memória + (opcional) SQLite.
-- Busca unificada (`search=`) e filtros (`genre=`, `year=`) via query string.
-- Normalização e deduplicação (prioriza IMDb ID quando disponível).
-- Enriquecimento: rating, badges ("Em Alta", "Novo").
-- Watchlist em memória (demo) via endpoints REST.
-- Manifesto em `/` e `/manifest.json` + rotas Stremio padrão.
-- Proxy de imagem opcional (`/img?url=`) para modo leve em Smart TV.
-- Health check `/health`.
+## ✨ Funcionalidades
 
-## Requisitos
-- Node.js 18+ (fetch nativo).
+- 🔍 **Recurso Meta**: Intercepta requisições de metadados do Stremio
+- 🌐 **Tradução Inteligente**: Usa Google Gemini para traduzir sinopses
+- 🎯 **Suporte Completo**: Filmes, séries, temporadas e episódios
+- 🚀 **Cache LRU**: Reduz latência e custos de API
+- ⚙️ **Configurável**: Idioma e tom ajustáveis no Stremio
+- 🔄 **Fallbacks**: Sistema robusto de fallbacks para máxima compatibilidade
 
-## Instalação
+## 📋 Pré-requisitos
+
+- Node.js 18+ (para fetch nativo)
+- Chave API do TMDB (gratuita)
+- Chave API do Google Gemini (gratuita com limitações)
+
+## 🛠️ Instalação
+
+### 1. Clone e instale dependências
 ```bash
+cd stremio-synopsis-translator-gemini
 npm install
-# (Opcional) cache persistente
-npm install better-sqlite3 --save-optional
-# (Opcional) otimização imagem
-npm install sharp --save-optional
 ```
 
-## Execução
+### 2. Configure variáveis de ambiente
+```bash
+cp .env.example .env
+```
+
+Edite o arquivo `.env`:
+```env
+PORT=7000
+TMDB_API_KEY=sua_chave_tmdb_aqui
+GEMINI_API_KEY=sua_chave_gemini_aqui
+GEMINI_MODEL=gemini-1.5-flash
+CACHE_TTL_MS=86400000
+JWT_SECRET=sua_chave_secreta_para_criptografia
+```
+
+### 3. Execute localmente
 ```bash
 npm start
 ```
-Servidor: `http://localhost:7000`
 
-## Variáveis de Ambiente
-- `PORT` porta (default 7000)
-- `TARGET_LANG` idioma destino (default `pt`)
-- `LIBRE_TRANSLATE_URL` endpoint tradução (LibreTranslate)
-- `TMDB_API_KEY` chave TMDb
-- `OMDB_API_KEY` chave OMDb
-- `ENABLE_IMAGE_PROXY=1` ativa proxy /img
-- `IMAGE_MAX_WIDTH=320` largura máx (se usar sharp)
-- `PRETRANSLATE=1` usar script pré-tradução manualmente
-- `GLOSSARY_PATH` caminho de glossary.json (default ./glossary.json)
-- `CACHE_TTL` TTL cache (segundos)
-- `REMOTE_ADDONS` lista de manifests remotos separados por vírgula (default Cinemeta)
-- `REMOTE_REFRESH_SEC` intervalo para recarregar manifests remotos
+O add-on estará disponível em: `http://127.0.0.1:7000/manifest.json`
 
-## Adicionando no Stremio
-Manifesto: `http://<SEU_IP_LOCAL>:7000/manifest.json`
-Smart TV: mesma rede; abrir firewall porta 7000.
+## 🔑 Obtendo Chaves de API
 
-## Endpoints Extra
-- `GET /catalog/:type/:id.json?search=matrix&genre=Action&year=1999`
-- `GET /meta/:type/:id.json`
-- `POST /user/:userId/watchlist/:id` (add)
-- `DELETE /user/:userId/watchlist/:id` (remove)
-- `GET /user/:userId/watchlist` (listar)
-- `GET /img?url=<encoded>`
-- `GET /health`
+### TMDB API Key
+1. Acesse: https://www.themoviedb.org/settings/api
+2. Registre-se gratuitamente
+3. Solicite uma chave API (aprovação automática)
 
-## Super Agregador (Tudo Traduzido)
-Catálogos `Filmes (Tudo Traduzido)` e `Séries (Tudo Traduzido)` agregam catálogos de add-ons remotos (por padrão Cinemeta), traduzem e retornam uma lista unificada.
+### Google Gemini API Key
+1. Acesse: https://makersuite.google.com/app/apikey
+2. Faça login com conta Google
+3. Crie uma nova chave API
+4. Configure cotas e limites conforme necessário
 
-Personalização:
-```
-REMOTE_ADDONS=https://v3-cinemeta.strem.io/manifest.json,https://outro-addon/manifest.json
-REMOTE_REFRESH_SEC=1800
-```
-Limitações:
-- Paginacão simplificada (recorta primeiros ~120 itens).
-- Pode haver delay adicional na primeira chamada (tradução + fetch remoto).
+## 📱 Adicionando ao Stremio
 
-## Glossário
-Arquivo `glossary.json` exemplo:
-```json
-{
-  "Matrix": "Matrix",
-  "Season": "Temporada",
-  "Episode": "Episódio"
-}
-```
+### Desktop/Mobile
+1. Abra o Stremio
+2. Vá em **Settings** → **Add-ons**
+3. Cole a URL: `http://SEU_IP:7000/manifest.json` (ou URL do deploy)
+4. Clique em **Install**
 
-## Pré-tradução
-Popular cache (trending) antes de iniciar carga de usuários:
+### Smart TV/Android TV
+- Use o IP da sua rede local: `http://192.168.1.100:7000/manifest.json`
+- Certifique-se que a porta 7000 está liberada no firewall
+
+## 🧪 Testando
+
+### Testes manuais via curl
 ```bash
-npm run pretranslate
+# Manifest
+curl http://127.0.0.1:7000/manifest.json
+
+# Filme (Inception)
+curl http://127.0.0.1:7000/meta/movie/tt1375666.json
+
+# Episódio (Game of Thrones S01E01)
+curl http://127.0.0.1:7000/meta/series/tt0944947:1:1.json
+
+# Série completa
+curl http://127.0.0.1:7000/meta/series/tt0944947.json
 ```
 
-## Limitações Atuais
-- Watchlist só em memória (reinício limpa).
-- Sem autenticação / quotas.
-- Filtros básicos (sem paginação avançada / ordenação flexível).
-- Trailers / elenco detalhado ainda não puxados.
+## 🚀 Deploy em Produção
 
-## Deploy Render (exemplo)
-1. Git push do projeto.
-2. Render: New Web Service -> repo.
-3. Build: `npm install`
-4. Start: `npm start`
-5. Definir env vars (TMDB_API_KEY, OMDB_API_KEY, TARGET_LANG, etc.).
-6. Usar URL: `https://SEU-SERVICE.onrender.com/manifest.json` no Stremio.
+### Render (Recomendado - Gratuito)
 
-### Usando Dockerfile (Render ou outro host)
-O repositório já contém `Dockerfile`. Em qualquer serviço que aceite build Docker basta apontar para a raiz.
+1. **Fork/Clone** este repositório no GitHub
+2. Acesse https://render.com e conecte com GitHub
+3. **New → Web Service**
+4. Conecte seu repositório
+5. Configure:
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
+   - **Environment Variables**: Cole as variáveis do `.env`
+6. Deploy!
 
-Build local manual:
+### Vercel
 ```bash
-docker build -t stremio-tradutor .
-docker run -p 7000:7000 --env-file .env stremio-tradutor
+npm i -g vercel
+vercel --env TMDB_API_KEY=xxx --env GEMINI_API_KEY=xxx
 ```
 
-### render.yaml
-Arquivo `render.yaml` incluído para Infra as Code; no Render (Blueprint Deploy) ele cria o serviço automaticamente.
+### Docker
+```bash
+docker build -t synopsis-translator .
+docker run -p 7000:7000 --env-file .env synopsis-translator
+```
 
-## Próximos Passos (Sugestões Evolução)
-- Persistir watchlist em DB + autenticação token.
-- Paginação / ordenação (popularidade, rating, ano).
-- Recomendação baseada em gêneros e histórico.
-- Trailers (YouTube) e elenco completo (TMDb credits).
-- Fila de pré-tradução incremental.
-- Métricas Prometheus + dashboard.
-- Rate limiting + API keys e planos.
+## ⚙️ Configuração
 
-## Licença
-MIT (defina conforme necessidade).
+O add-on oferece configuração via interface do Stremio:
+
+- **Idioma da sinopse**: pt-BR, pt-PT, es-ES, en-US, fr-FR
+- **Tom do texto**: natural, formal, neutro
+
+Essas configurações são aplicadas automaticamente às traduções.
+
+## 🔄 Como Funciona
+
+1. **Entrada**: Stremio solicita meta para ID como `tt1375666` ou `tt0944947:1:1`
+2. **Mapeamento**: Converte IMDB ID para TMDB ID via `/find`
+3. **Busca**: Obtém dados no idioma alvo; se vazio, busca em inglês
+4. **Tradução**: Se necessário, traduz com Gemini usando prompt otimizado
+5. **Cache**: Salva resultado em LRU cache (24h padrão)
+6. **Retorno**: Monta objeto meta completo com sinopse traduzida
+
+## 📝 Estrutura do Projeto
+
+```
+src/
+├── server.js      # Inicializador do servidor
+├── manifest.js    # Definição do manifest do add-on
+├── addon.js       # Lógica principal e handler meta
+├── tmdb.js        # Utilitários para API do TMDB
+├── translate.js   # Integração com Google Gemini
+└── cache.js       # Cache LRU em memória
+```
+
+## 🔧 Variáveis de Ambiente
+
+| Variável | Obrigatória | Padrão | Descrição |
+|----------|-------------|--------|-----------|
+| `PORT` | ❌ | 7000 | Porta do servidor |
+| `TMDB_API_KEY` | ✅ | - | Chave da API do TMDB |
+| `GEMINI_API_KEY` | ✅ | - | Chave da API do Gemini |
+| `GEMINI_MODEL` | ❌ | gemini-1.5-flash | Modelo do Gemini |
+| `CACHE_TTL_MS` | ❌ | 86400000 | TTL do cache (24h) |
+| `JWT_SECRET` | ⚠️ | - | Segredo para criptografia (recomendado) |
+
+## 🚨 Limitações
+
+- **Cache em memória**: Perdido ao reiniciar (considere Redis para produção)
+- **Sem cache persistente**: Primeiras traduções podem ser mais lentas
+- **Dependente de APIs**: Requer TMDB e Gemini funcionando
+- **Custo de tradução**: Gemini tem limites gratuitos
+- **Detecção de idioma**: Heurística simples (pode melhorar)
+
+## 🔄 Fallbacks e Robustez
+
+- Se sinopse existe no idioma alvo → Usa diretamente
+- Se não existe → Busca em inglês e traduz
+- Se episódio sem sinopse → Usa sinopse da série
+- Se tradução falha → Retorna texto original
+- Rate limit TMDB → Retry automático (500ms)
+
+## 🐛 Troubleshooting
+
+### "TMDB_API_KEY é obrigatório"
+- Verifique se definiu `TMDB_API_KEY` no `.env` ou variáveis de ambiente
+
+### "Erro na tradução Gemini"
+- Verifique `GEMINI_API_KEY`
+- Confirme se não excedeu quota gratuita
+- Teste com `GEMINI_MODEL=gemini-pro` se necessário
+
+### Add-on não aparece no Stremio
+- Confirme que URL do manifest está acessível
+- Verifique logs do servidor por erros
+- Teste manifest via browser: `/manifest.json`
+
+### Traduções não acontecem
+- Verifique se idioma alvo é diferente de inglês
+- Confirme que texto original não parece já estar no idioma alvo
+- Verifique logs para erros de API
+
+## 📈 Próximos Passos
+
+- [ ] Cache persistente (Redis/SQLite)
+- [ ] Suporte a mais idiomas
+- [ ] Detecção de idioma mais robusta
+- [ ] Metrics e monitoramento
+- [ ] Suporte a seasons explícito
+- [ ] Fallback para outros tradutores
+- [ ] Interface de administração
+
+## 📄 Licença
+
+MIT License - Sinta-se livre para usar e modificar.
+
+## 🤝 Contribuindo
+
+1. Fork o projeto
+2. Crie uma branch para sua feature
+3. Commit suas mudanças
+4. Abra um Pull Request
+
+---
+
+**Feito com ❤️ para a comunidade Stremio**
