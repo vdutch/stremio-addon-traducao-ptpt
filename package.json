@@ -2,7 +2,6 @@
   "name": "stremio-synopsis-translator-gemini",
   "version": "1.0.0",
   "description": "Stremio Add-on que traduz automaticamente sinopses usando TMDB + Google Gemini",
-  "type": "module",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -14,7 +13,6 @@
     "@google/generative-ai": "^0.21.0",
     "dotenv": "^16.4.5",
     "lru-cache": "^10.2.2",
-    "node-fetch": "^3.3.2",
     "stremio-addon-sdk": "^1.6.9"
   }
 }

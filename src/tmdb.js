@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 const IMG_BASE = 'https://image.tmdb.org/t/p';
 
@@ -45,7 +43,7 @@ async function doFetch(path, params = {}) {
 /**
  * Encontra TMDB ID usando IMDB ID
  */
-export async function findByImdb(imdbId) {
+async function findByImdb(imdbId) {
   const data = await doFetch(`/find/${imdbId}`, { external_source: 'imdb_id' });
   
   if (data.movie_results && data.movie_results.length > 0) {
@@ -62,7 +60,7 @@ export async function findByImdb(imdbId) {
 /**
  * Busca dados de filme
  */
-export async function getMovie(tmdbId, language = 'en-US') {
+async function getMovie(tmdbId, language = 'en-US') {
   const data = await doFetch(`/movie/${tmdbId}`, { language });
   return normalizeMovie(data);
 }
@@ -70,7 +68,7 @@ export async function getMovie(tmdbId, language = 'en-US') {
 /**
  * Busca dados de série/TV
  */
-export async function getTV(tmdbId, language = 'en-US') {
+async function getTV(tmdbId, language = 'en-US') {
   const data = await doFetch(`/tv/${tmdbId}`, { language });
   return normalizeTV(data);
 }
@@ -78,7 +76,7 @@ export async function getTV(tmdbId, language = 'en-US') {
 /**
  * Busca dados de episódio específico
  */
-export async function getEpisode(tmdbId, season, episode, language = 'en-US') {
+async function getEpisode(tmdbId, season, episode, language = 'en-US') {
   const data = await doFetch(`/tv/${tmdbId}/season/${season}/episode/${episode}`, { language });
   return normalizeEpisode(data);
 }
@@ -86,7 +84,7 @@ export async function getEpisode(tmdbId, season, episode, language = 'en-US') {
 /**
  * Busca dados de temporada (opcional)
  */
-export async function getSeason(tmdbId, season, language = 'en-US') {
+async function getSeason(tmdbId, season, language = 'en-US') {
   const data = await doFetch(`/tv/${tmdbId}/season/${season}`, { language });
   return normalizeSeason(data);
 }
@@ -141,3 +139,5 @@ function normalizeSeason(data) {
     season: data.season_number
   };
 }
+
+module.exports = { findByImdb, getMovie, getTV, getEpisode, getSeason };
