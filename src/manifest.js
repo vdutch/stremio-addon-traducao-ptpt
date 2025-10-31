@@ -15,7 +15,7 @@ const manifest = {
       title: 'Idioma da sinopse',
       type: 'select',
       options: ['pt-BR','pt-PT','es-ES','en-US','fr-FR'],
-      default: 'pt-BR',
+      default: 'pt-PT',
       required: true
     },
     {
